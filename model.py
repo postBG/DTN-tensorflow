@@ -1,60 +1,49 @@
-from __future__ import division
-from glob import glob
-from six.moves import xrange
-import numpy as np
 import tensorflow as tf
 import os
-import time
-import math
 
 
 class DTN(object):
     def __init__(self, sess, input_height=32, input_width=32, batch_size=64, sample_num=64, output_height=32,
                  output_width=32,
-                 c_dim=3, dataset_name='default', checkpoint_dir=None, sample_dir=None)
+                 c_dim=3, dataset_name='default', checkpoint_dir=None, sample_dir=None):
+        self.sess = sess
 
-    self.sess = sess
+        self.batch_size = batch_size
+        self.sample_num = sample_num
 
-    self.batch_size = batch_size
-    self.sample_num = sample_num
+        self.input_height = input_height
+        self.input_width = input_width
+        self.output_height = output_height
+        self.output_width = output_width
 
-    self.input_height = input_height
-    self.input_width = input_width
-    self.output_height = output_height
-    self.output_width = output_width
+        # self.d_bn1 = batch_norm(name='d_bn1')
+        # self.d_bn2 = batch_norm(name='d_bn2')
 
-    self.d_bn1 = batch_norm(name='d_bn1')
-    self.d_bn2 = batch_norm(name='d_bn2')
-
-    # TODO
     # LG = L_Gang + alpha L_const + beta L_tid + gamma L_tv
-
     def build_model(self):
-
-    # TODO
+        raise NotImplementedError
 
     def train(self, config):
-
-    # TODO
+        raise NotImplementedError
 
     def domain_acceptor(self, content, input):  # function f
+        raise NotImplementedError
 
-    # TODO
     # SVHN
     # 64 128 256 128
     # max pooling 4 x 4
     # ReLU
 
-
-
     def discriminator(self, image, reuse=False):
+        raise NotImplementedError
 
-    # TODO
     def generator(self, f):
+        raise NotImplementedError
 
     # TODO
 
     def sampler(self, image):
+        raise NotImplementedError
 
     # TODO?
 
