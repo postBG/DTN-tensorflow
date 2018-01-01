@@ -9,7 +9,7 @@ import math
 
 
 class DTN(object) :
-    def __init__ (self,sess,input_height=32,input_width=32,batch_size=64, sample+num=64,output_height=32,output_width=64,
+    def __init__ (self,sess,input_height=32,input_width=32,batch_size=64, sample_num=64,output_height=32,output_width=32,
             c_dim=3,dataset_name='default', checkpoint_dir=None,sample_dir=None)
 
     self.sess = sess
@@ -24,7 +24,8 @@ class DTN(object) :
 
     self.d_bn1 = batch_norm(name='d_bn1')
     self.d_bn2 = batch_norm(name='d_bn2')
-    
+ 
+    # TODO
     # LG = L_Gang + alpha L_const + beta L_tid + gamma L_tv
 
     def build_model(self) :
