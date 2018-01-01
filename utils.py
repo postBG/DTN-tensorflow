@@ -13,15 +13,17 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
 
-def rgb2gray(rgb) :
-    return np.dot(rgb[...,:3],[0.299,0.587,0.114])
+def rgb2gray(rgb):
+    return np.dot(rgb[..., :3], [0.299, 0.587, 0.114])
 
-def one_hot_encoding (size, dim, y) :
-    one_hot = np.zeros((size,dim))
+
+def one_hot_encoding(size, dim, y):
+    one_hot = np.zeros((size, dim))
     one_hot[np.arange(size), y] = 1.0
     return one_hot
 
-def load_svhn(dataset_name,use='train',gray=False): # opt True for using extra
+
+def load_svhn(dataset_name, use='train', gray=False):  # opt True for using extra
     def __store_data(data, num_of_examples, gray):
         d = []
         for i in range(num_of_examples):
@@ -30,27 +32,28 @@ def load_svhn(dataset_name,use='train',gray=False): # opt True for using extra
             else:
                 d.append(data[:, :, :, i])
         return np.asarray(d)
-    
-    #load train set
-    data_dir=os.path.join("./data",dataset_name)
-    if use=='train'
+
+    # load train set
+    data_dir = os.path.join("./data", dataset_name)
+    if use == 'train'
         train = sio.loadmat(data_dir + "/train_32x32.mat")
         train_size = train['X'].shape[3]
-        train_labels = one_hot_encoding(train_size,11,train['y']) # train['y'] has 10
-        train_data = __store_data(train['X'].astype("float32"),train_size,gray)
-        return train_data/255. , train_labels
-    elif use=='test' :
+        train_labels = one_hot_encoding(train_size, 11, train['y'])  # train['y'] has 10
+        train_data = __store_data(train['X'].astype("float32"), train_size, gray)
+        return train_data / 255., train_labels
+    elif use == 'test':
         test = sio.loadmat(data_dir + "/test_32x32.mat")
         test_size = test['X'].shape[3]
-        test_labels = one_hot_encoding(train_size,11,test['y'])
-        test_data = __store_data(test['X'].astype("float32"),test_size,gray)
-        return test_data/255. , test_labels
+        test_labels = one_hot_encoding(train_size, 11, test['y'])
+        test_data = __store_data(test['X'].astype("float32"), test_size, gray)
+        return test_data / 255., test_labels
     else
-        extra= sio.loadmat(data_dir + "/extra_32x32.mat")
+        extra = sio.loadmat(data_dir + "/extra_32x32.mat")
         extra_size = train['X'].shape[3]
-        extra_labels = one_hot_encoding(extra_size,11,extra['y']) # train['y'] has 10
-        extra_data = __store_data(extra['X'].astype("float32"),extra_size,gray)
-        return extra_data/255. , extra_labels
+        extra_labels = one_hot_encoding(extra_size, 11, extra['y'])  # train['y'] has 10
+        extra_data = __store_data(extra['X'].astype("float32"), extra_size, gray)
+        return extra_data / 255., extra_labels
+
 
 def load_mnist(dataset_name):
     data_dir = os.path.join("./data", dataset_name)
@@ -91,5 +94,3 @@ def load_mnist(dataset_name):
         y_vec[i, y[i]] = 1.0
 
     return X / 255., y_vec
-
-
