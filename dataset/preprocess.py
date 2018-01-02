@@ -5,6 +5,7 @@ from PIL import Image
 from tensorflow.examples.tutorials.mnist import input_data
 
 MNIST_PATH = os.path.join(os.path.dirname(__file__), '../data/mnist')
+SVHN_PATH = os.path.join(os.path.dirname(__file__), '../data/svhn')
 
 
 def save_pickle(data, path):
