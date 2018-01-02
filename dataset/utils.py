@@ -1,22 +1,27 @@
 import os
 import pickle
+import scipy.io as sio
+import numpy as np
 
-from dataset.preprocess import MNIST_PATH
+from utils import rgb2gray
+from .preprocess import MNIST_PATH, SVHN_PATH
 
 
-def load_mnist(image_dir=MNIST_PATH, use='train'):
+def load_mnist(data_dir=MNIST_PATH, use='train'):
     """
     Load preprocessed mnist and normalize it to [-1, 1]
-
-    :param image_dir: directory path where mnist pickles exist. default MNIST_PATH 
-    :param use: load 'train' or 'test'
-    :return: normalized images and labels
+    
+    parameter
+    - data_dir: directory path where mnist pickles exist. default MNIST_PATH 
+    - use: load 'train' or 'test'
+    
+    return: normalized images and labels
     """
     print('loading mnist image dataset..')
-    image_file = 'train.pkl' if use == 'train' else 'test.pkl'
-    image_dir = os.path.join(image_dir, image_file)
+    data_file = 'train.pkl' if use == 'train' else 'test.pkl'
+    data_dir = os.path.join(data_dir, data_file)
 
-    with open(image_dir, 'rb') as f:
+    with open(data_dir, 'rb') as f:
         mnist = pickle.load(f)
     images = mnist['X'] / 127.5 - 1
     labels = mnist['y']
@@ -25,34 +30,53 @@ def load_mnist(image_dir=MNIST_PATH, use='train'):
     return images, labels
 
 
-def load_svhn(dataset_name, use='train', gray=False):  # opt True for using extra
-    # def __store_data(data, num_of_examples, gray):
-    #     d = []
-    #     for i in range(num_of_examples):
-    #         if gray:
-    #             d.append(__rgb2gray(data[:, :, :, i]))
-    #         else:
-    #             d.append(data[:, :, :, i])
-    #     return np.asarray(d)
-    #
-    # # load train set
-    # data_dir = os.path.join("./data", dataset_name)
-    # if use == 'train'
-    #     train = sio.loadmat(data_dir + "/train_32x32.mat")
-    #     train_size = train['X'].shape[3]
-    #     train_labels = one_hot_encoding(train_size, 11, train['y'])  # train['y'] has 10
-    #     train_data = __store_data(train['X'].astype("float32"), train_size, gray)
-    #     return train_data / 255., train_labels
-    # elif use == 'test':
-    #     test = sio.loadmat(data_dir + "/test_32x32.mat")
-    #     test_size = test['X'].shape[3]
-    #     test_labels = one_hot_encoding(train_size, 11, test['y'])
-    #     test_data = __store_data(test['X'].astype("float32"), test_size, gray)
-    #     return test_data / 255., test_labels
-    # else
-    #     extra = sio.loadmat(data_dir + "/extra_32x32.mat")
-    #     extra_size = train['X'].shape[3]
-    #     extra_labels = one_hot_encoding(extra_size, 11, extra['y'])  # train['y'] has 10
-    #     extra_data = __store_data(extra['X'].astype("float32"), extra_size, gray)
-    #     return extra_data / 255., extra_labels
-    pass
+def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
+    """
+    Load preprocessed SVHN and normalize it to [0, 1]
+    
+    parameter
+    - data_dir : directory path where mnist pickles exist. default SVHN_PATH 
+    - use : load 'train', 'test', or 'extra' ( 'extra' is not recommanded becuase of it size 1.2GB )
+    - tray : if True then save gray images (boolean)
+    
+    return: normalized images and labels
+    """
+
+    def __store_data(data, num_of_examples, gray):
+        """
+        Append data by following gray option
+
+        parameter
+        - data : the structure which contains images
+        - num_of_examples : number of images (integer)
+        - gray : if True then save gray images (boolean)
+        """
+
+        d = []
+        for i in range(num_of_examples):
+            if gray:
+                d.append(rgb2gray(data[:, :, :, i]))
+            else:
+                d.append(data[:, :, :, i])
+        return np.asarray(d)
+
+    print(os.path.join(data_dir, use + "_32x32.mat"))
+    data = sio.loadmat(os.path.join(data_dir, use + "_32x32.mat"))
+    data_size = data['X'].shape[3]
+
+    labels = np.zeros((data_size, 10))
+    labels[np.arange(data_size), (data['y'] % 10)] = 1.0
+    images = __store_data(data['X'].astype("float32"), data_size, gray)
+    images = images / 255
+    print('finished loading svhn ' + use + ' dataset..!')
+    return images, labels
+
+
+    # load dataset
+
+#    if use=='train' :
+#        train = sio.loadmat(data_dir + "/train_32x32.mat")
+#        train_size = train['X'].shape[3]
+#        train_labels = one_hot_encoding(train_size,11,train['y']) # train['y'] has 10
+#        train_data = __store_data(train['X'].astype("float32"),train_size,gray)
+#        return train_data/255. , train_labels
