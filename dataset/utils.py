@@ -3,6 +3,7 @@ import pickle
 import scipy.io as sio
 import numpy as np
 
+from utils import rgb2gray
 from .preprocess import MNIST_PATH, SVHN_PATH
 
 
