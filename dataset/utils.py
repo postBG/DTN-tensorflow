@@ -3,8 +3,8 @@ import pickle
 import scipy.io as sio
 import numpy as np
 
-from preprocess import MNIST_PATH
-from preprocess import SVHN_PATH
+from dataset.preprocess import MNIST_PATH
+from dataset.preprocess import SVHN_PATH
 
 
 def load_mnist(data_dir=MNIST_PATH, use='train'):
