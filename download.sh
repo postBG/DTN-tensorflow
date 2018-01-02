@@ -2,6 +2,8 @@
 mkdir -p data
 mkdir -p data/svhn
 
+python dataset/preprocess.py
+
 if [ ! -f "data/svhn/train_32x32.mat" ]
 then
     wget -O data/svhn/train_32x32.mat http://ufldl.stanford.edu/housenumbers/train_32x32.mat
