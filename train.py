@@ -1,3 +1,6 @@
+import tensorflow as tf
+
+
 class Trainer:
     """
     https://wookayin.github.io/TensorFlowKR-2017-talk-bestpractice/ko/#37
@@ -7,6 +10,12 @@ class Trainer:
                  svhn_dir='svhn', mnist_dir='mnist', log_dir='logs', sample_save_path='sample',
                  model_save_path='model', pretrained_model='model/svhn_model-20000', test_model='model/dtn-1800'):
         self.model = model
+        self.config = tf.ConfigProto()
+        self.config.gpu_options.allow_growth = True
+
+    def pretrain(self):
+        with tf.Session(config=self.config) as sess:
+            sess.run(tf.global_variables_initializer())
 
     def train(self):
         raise NotImplementedError
