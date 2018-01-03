@@ -7,7 +7,11 @@ class DTN:
         self.s_images = s_images
         self.t_images = t_images
         self.learning_rate = learning_rate
+
         self.mode = configs.mode
+        self.alpha = configs.alpha
+        self.beta = configs.beta
+        self.gamma = configs.gamma
 
     def feature_extractor(self, images, reuse=False):
         if self._is_mnist(images):
@@ -34,12 +38,12 @@ class DTN:
 
                     if self.mode == 'pretrain':
                         flatten = slim.flatten(pool4)
-                        logits = slim.fully_connected(flatten, 10, scope="f_out", activation_fn=None)
+                        logits = slim.fully_connected(flatten, 10, activation_fn=None, scope="f_out")
                         return logits
 
                     return pool4
 
-    def generator(self, images, reuse=False, training=True):
+    def generator(self, extracted_features, reuse=False):
         raise NotImplementedError
 
     def discriminator(self):
