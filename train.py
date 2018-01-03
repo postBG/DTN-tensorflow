@@ -16,6 +16,7 @@ class Trainer:
     def pretrain(self):
         with tf.Session(config=self.config) as sess:
             sess.run(tf.global_variables_initializer())
+            # TODO
 
     def train(self):
         raise NotImplementedError

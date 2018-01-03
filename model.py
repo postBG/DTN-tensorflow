@@ -20,6 +20,7 @@ class DTN:
         with tf.variable_scope("feature_extractor", reuse=reuse):
             with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.relu, padding="SAME", kernel_size=3, stride=1):
                 with slim.arg_scope([slim.max_pool2d], kernel_size=2, stride=2):
+                    # for now images shape [batch_size, 32, 32, 3]
                     conv1 = slim.conv2d(images, 64, scope="conv1")
                     pool1 = slim.max_pool2d(conv1, scope="pool1")
                     # now images shape [batch_size, 16, 16, 64]
@@ -43,8 +44,28 @@ class DTN:
 
                     return pool4
 
-    def generator(self, extracted_features, reuse=False):
-        raise NotImplementedError
+    def generator(self, extracted_features, reuse=False, is_training=True):
+        with tf.variable_scope("generator", reuse=reuse):
+            with slim.arg_scope([slim.conv2d_transpose], kernel_size=3, stride=2, padding='SAME'):
+                with slim.arg_scope([slim.batch_norm], is_training=is_training, activation_fn=tf.nn.relu):
+                    # For now extracted feature shapes [batch_size, 1, 1, 128]
+                    deconv1 = slim.conv2d_transpose(extracted_features, 512, 4, stride=4, scope="deconv1")
+                    bn1 = slim.batch_norm(deconv1, scope="bn1")
+                    # shape [batch_size, 4, 4, 512]
+
+                    deconv2 = slim.conv2d_transpose(bn1, 256, scope="deconv2")
+                    bn2 = slim.batch_norm(deconv2, scope="bn2")
+                    # shape [batch_size, 8, 8, 256]
+
+                    deconv3 = slim.conv2d_transpose(bn2, 128, scope="deconv3")
+                    bn3 = slim.batch_norm(deconv3, scope="bn3")
+                    # shape [batch_size, 16, 16, 128]
+
+                    deconv4 = slim.conv2d_transpose(bn3, 1, scope="deconv4")
+                    bn4 = slim.batch_norm(deconv4, activation_fn=tf.nn.tanh, scope="bn4")
+                    # shape [batch_size, 32, 32, 1]
+
+                    return bn4
 
     def discriminator(self):
         raise NotImplementedError

@@ -27,5 +27,14 @@ def main(_):
     if not os.path.exists(FLAGS.sample_dir):
         os.makedirs(FLAGS.sample_dir)
 
+    s_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='s_images')
+    t_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 1], name='t_images')
+    learning_rate = tf.placeholder(tf.float32, name='learning_rate')
+
+    model = DTN(s_images, t_images, learning_rate, FLAGS)
+    trainer = Trainer(model)
+
+    trainer.pretrain()
+
 if __name__ == '__main__':
     tf.app.run()
