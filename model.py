@@ -13,7 +13,7 @@ class DTN:
         self.beta = configs.beta
         self.gamma = configs.gamma
 
-    def feature_extractor(self, images, reuse=False):
+    def feature_extractor(self, images, reuse=False, pretrain=False):
         if self._is_mnist(images):
             images = tf.image.grayscale_to_rgb(images)
 
@@ -37,7 +37,7 @@ class DTN:
                     pool4 = slim.max_pool2d(conv4, kernel_size=4, stride=4, scope="pool4")
                     # now activation shape [batch_size, 1, 1, 128]
 
-                    if self.mode == 'pretrain':
+                    if pretrain:
                         flatten = slim.flatten(pool4)
                         logits = slim.fully_connected(flatten, 10, activation_fn=None, scope="f_out")
                         return logits

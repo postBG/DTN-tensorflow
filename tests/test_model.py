@@ -22,7 +22,7 @@ class TestDTN(unittest.TestCase):
 
     def test_pretrain모드일_경우_feature_extractor는_logits를_리턴(self):
         src_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3])
-        logits = self.model.feature_extractor(src_images)
+        logits = self.model.feature_extractor(src_images, pretrain=True)
 
         self.assertListEqual([None, 10], logits.get_shape().as_list(),
                              'Incorrect Image Shape.  Found {} shape'.format(logits.get_shape().as_list()))
@@ -30,7 +30,7 @@ class TestDTN(unittest.TestCase):
     def test_pretrain모드가_아닐경우_feature_extractor는_1x1x128형태의_activations반환(self):
         self.model.mode = 'train'
         src_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3])
-        activations = self.model.feature_extractor(src_images)
+        activations = self.model.feature_extractor(src_images, pretrain=False)
 
         self.assertListEqual([None, 1, 1, 128], activations.get_shape().as_list(),
                              'Incorrect Image Shape.  Found {} shape'.format(activations.get_shape().as_list()))
