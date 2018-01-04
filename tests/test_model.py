@@ -41,3 +41,10 @@ class TestDTN(unittest.TestCase):
 
         self.assertListEqual([None, 32, 32, 1], generated.get_shape().as_list(),
                              'Incorrect Image Shape.  Found {} shape'.format(generated.get_shape().as_list()))
+
+    def test_discriminator는_32x32x1형태의_입력을_받아_3개의_클래스_logits으로_요약(self):
+        t_shape_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 1])
+        discriminated = self.model.discriminator(t_shape_images)
+
+        self.assertListEqual([None, 3], discriminated.get_shape().as_list(),
+                             'Incorrect Image Shape.  Found {} shape'.format(discriminated.get_shape().as_list()))

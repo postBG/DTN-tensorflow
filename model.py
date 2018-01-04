@@ -46,10 +46,10 @@ class DTN:
 
     def generator(self, extracted_features, reuse=False, is_training=True):
         with tf.variable_scope("generator", reuse=reuse):
-            with slim.arg_scope([slim.conv2d_transpose], kernel_size=3, stride=2, padding='SAME'):
+            with slim.arg_scope([slim.conv2d_transpose], activation_fn=None, kernel_size=3, stride=2, padding='SAME'):
                 with slim.arg_scope([slim.batch_norm], is_training=is_training, activation_fn=tf.nn.relu):
                     # For now extracted feature shapes [batch_size, 1, 1, 128]
-                    deconv1 = slim.conv2d_transpose(extracted_features, 512, 4, stride=4, scope="deconv1")
+                    deconv1 = slim.conv2d_transpose(extracted_features, 512, kernel_size=4, stride=4, scope="deconv1")
                     bn1 = slim.batch_norm(deconv1, scope="bn1")
                     # shape [batch_size, 4, 4, 512]
 
@@ -67,8 +67,33 @@ class DTN:
 
                     return bn4
 
-    def discriminator(self):
-        raise NotImplementedError
+    def discriminator(self, t_shape_images, reuse=False, is_training=True):
+        with tf.variable_scope("discriminator", reuse=reuse):
+            with slim.arg_scope([slim.conv2d], activation_fn=None, kernel_size=3, stride=2, padding='SAME'):
+                with slim.arg_scope([slim.batch_norm], is_training=is_training, activation_fn=tf.nn.relu):
+                    # now shape [batch_size, 32, 32, 1]
+                    conv1 = slim.conv2d(t_shape_images, 128, scope="conv1")
+                    bn1 = slim.batch_norm(conv1, scope="bn1")
+                    # shape [batch_size, 16, 16, 128]
+
+                    conv2 = slim.conv2d(bn1, 256, scope="conv2")
+                    bn2 = slim.batch_norm(conv2, scope="bn2")
+                    # shape [batch_size, 8, 8, 256]
+
+                    conv3 = slim.conv2d(bn2, 512, scope="conv3")
+                    bn3 = slim.batch_norm(conv3, scope="bn3")
+                    # shape [batch_size, 4, 4, 512]
+
+                    conv4 = slim.conv2d(bn3, 1024, scope="conv4")
+                    bn4 = slim.batch_norm(conv4, scope="bn4")
+                    # shape [batch_size, 2, 2, 1024]
+
+                    one_by_one_conv = slim.conv2d(bn4, 3, scope="one_by_one_conv")
+                    # shape [batch_size, 1, 1, 3]
+                    logits = slim.flatten(one_by_one_conv, scope="logits")
+                    # shape [batch_size, 3]
+
+                    return logits
 
     def build_model(self):
         raise NotImplementedError
