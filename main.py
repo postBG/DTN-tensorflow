@@ -31,9 +31,11 @@ def main(_):
 
     s_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='s_images')
     t_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 1], name='t_images')
+    s_labels = tf.placeholder(tf.float32, shape=[None,10], name='s_labels')
+
     learning_rate = tf.placeholder(tf.float32, name='learning_rate')
 
-    model = DTN(s_images, t_images, learning_rate, FLAGS)
+    model = DTN(s_images, t_images, s_labels, learning_rate, FLAGS)
     trainer = Trainer(model)
 
     trainer.pretrain()

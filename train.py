@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
 
 
 class Trainer:
@@ -15,8 +16,14 @@ class Trainer:
     
     # all process use Adam
     def pretrain(self):
+        learning_rate = self.model.learning_rate
         with tf.Session(config=self.config) as sess:
-            sess.run(tf.global_variables_initializer())
+            tf.global_variables_initializer().run()
+            
+            # some friction occur between below and gpu_options
+            self.optimizer = tf.train.AdamOptimizer(learning_rate)
+            self.train_op = slim.learning.create_train_op(self.model.loss, self.optimizer)
+            slim.learning.train(self.train_op,'logs/')
             # TODO
 
     def train(self):
