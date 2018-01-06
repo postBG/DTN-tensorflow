@@ -12,7 +12,8 @@ class Trainer:
         self.model = model
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
-
+    
+    # all process use Adam
     def pretrain(self):
         with tf.Session(config=self.config) as sess:
             sess.run(tf.global_variables_initializer())

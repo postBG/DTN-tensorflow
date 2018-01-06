@@ -102,9 +102,21 @@ class DTN:
         self.beta = configs.beta
         self.gamma = configs.gamma
 
+        self.input_size = configs.input_size
+        self.output_size = configs.output_size
+        
+        self.build_model()
+
     def build_model(self):
         if self.mode == 'pretrain':
-            raise NotImplementedError
+            print("pretrain")
+            self.images = tf.placeholder(tf.float32, [None,32,32,3],'svhn_images') # first we only consider svhn-mnist
+            self.labels = tf.placeholder(tf.float32, [None,10],'svhn_labels')
+            self.logits = self.feature_extractor(self.images, False,True)
+            # classification performace
+            self.pred = tf.argmax(self.extracted, 1)
+            self.accuracy = tf.reduce_mean(tf.to_float32(self.pred==self.labels))
+            # Calculating loss
         elif self.mode == 'train':
             raise NotImplementedError
         else:
