@@ -1,6 +1,8 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
+from train import TrainerClient
+
 
 def _is_mnist(images):
     return images.get_shape()[3] == 1
@@ -91,38 +93,43 @@ def discriminator(t_shape_images, reuse=False, is_training=True):
                 return logits
 
 
-class DTN:
+def dtn_model_factory(s_images, t_images, s_labels, learning_rate, configs):
+    if configs.model == 'svhn2mnist':
+        return SVHN2MNIST_DTN(s_images, t_images, s_labels, learning_rate, configs)
+    else:
+        raise ValueError
+
+
+class AbstractDTN(TrainerClient):
     def __init__(self, s_images, t_images, s_labels, learning_rate, configs):
         self.s_images = s_images
         self.t_images = t_images
         self.s_labels = s_labels
         self.learning_rate = learning_rate
 
-        self.mode = configs.mode
         self.alpha = configs.alpha
         self.beta = configs.beta
         self.gamma = configs.gamma
 
-        self.input_size = configs.input_size
-        self.output_size = configs.output_size
 
-        self.build_model()
+class SVHN2MNIST_DTN(AbstractDTN):
+    def build_train_model(self):
+        pass
 
-    def build_model(self):
-        if self.mode == 'pretrain':
-            print("pretrain")
-            self.logits = feature_extractor(self.s_images, False, True)
-            # classification performace
-            self.preds = tf.argmax(self.logits, 1)
-            self.accuracy = tf.reduce_mean(tf.to_float(self.preds == self.s_labels))
+    def build_test_model(self):
+        pass
 
-            # Calculating loss
-            self.loss = tf.losses.softmax_cross_entropy(self.logits, self.s_labels)
-            #  self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
-            #  self.train_op = slim.learning.create_train_op(self.loss, self.optimizer)
-            print(type(self.loss))
-            print(self.loss)
-        elif self.mode == 'train':
-            raise NotImplementedError
-        else:
-            raise NotImplementedError
+    def build_pretrain_model(self):
+        print("build_pretrain_model is called")
+        self.logits = feature_extractor(self.s_images, False, True)
+
+        self.preds = tf.argmax(self.logits, 1)
+        self.accuracy = tf.reduce_mean(tf.to_float(self.preds == self.s_labels))
+
+        # Calculating loss
+        self.loss = tf.losses.softmax_cross_entropy(self.s_labels, self.logits)
+        self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
+
+        print(type(self.loss))
+        print(self.loss)
