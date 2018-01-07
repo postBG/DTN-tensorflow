@@ -105,22 +105,22 @@ class DTN:
 
         self.input_size = configs.input_size
         self.output_size = configs.output_size
-        
+
         self.build_model()
 
     def build_model(self):
         if self.mode == 'pretrain':
             print("pretrain")
-            self.logits = feature_extractor(self.s_images, False,True)
+            self.logits = feature_extractor(self.s_images, False, True)
             # classification performace
             self.preds = tf.argmax(self.logits, 1)
-            self.accuracy = tf.reduce_mean(tf.to_float(self.preds==self.s_labels))
+            self.accuracy = tf.reduce_mean(tf.to_float(self.preds == self.s_labels))
 
             # Calculating loss
             self.loss = tf.losses.softmax_cross_entropy(self.logits, self.s_labels)
-          #  self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
-          #  self.train_op = slim.learning.create_train_op(self.loss, self.optimizer)
-            print (type(self.loss))
+            #  self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
+            #  self.train_op = slim.learning.create_train_op(self.loss, self.optimizer)
+            print(type(self.loss))
             print(self.loss)
         elif self.mode == 'train':
             raise NotImplementedError
