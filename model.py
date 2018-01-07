@@ -117,7 +117,7 @@ class DTN:
             self.accuracy = tf.reduce_mean(tf.to_float(self.preds==self.s_labels))
 
             # Calculating loss
-            self.loss = slim.losses.softmax_cross_entropy(self.logits, self.s_labels)
+            self.loss = tf.losses.softmax_cross_entropy(self.logits, self.s_labels)
             print (type(self.loss))
             print(self.loss)
         elif self.mode == 'train':
