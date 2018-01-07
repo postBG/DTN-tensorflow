@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
+import preproc.utils as preutils
 
 class Trainer:
     """
@@ -16,6 +17,7 @@ class Trainer:
     
     # all process use Adam
     def pretrain(self):
+        images, labels = preutils.load_svhn()
         learning_rate = self.model.learning_rate
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
