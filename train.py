@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-
+import numpy as np
 import preproc.utils as preutils
 
 class Trainer:
@@ -15,6 +15,7 @@ class Trainer:
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
         
+        self.batch_size = batch_size
         # iteration
         self.pretrain_iter = pretrain_iter
         self.train_iter = train_iter
@@ -38,16 +39,23 @@ class Trainer:
     def pretrain(self):
         images, labels = preutils.load_svhn()
         learning_rate = self.model.learning_rate
-        for step in range(self.
-        
+           
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
-            
-            # some friction occur between below and gpu_options
+            limit = images.shape[0] // self.batch_size
             self.optimizer = tf.train.AdamOptimizer(learning_rate)
-            self.train_op = slim.learning.create_train_op(self.model.loss, self.optimizer)
-            slim.learning.train(self.train_op,'logs/')
-            # TODO
+
+            for step in range(self.pretrain_iter) :
+                i = step % limit
+                batch_images = images[i*self.batch_size:(i+1)*self.batch_size]
+                batch_labels = labels[i*self.batch_size:(i+1)*self.batch_size]
+            
+                feed_dict = {self.model.s_images: batch_images, self.model.s_labels: batch_labels}
+                self.train_op = slim.learning.create_train_op(self.model.loss, self.optimizer)
+                sess.run(self.model.train_op,feed_dict)
+                
+                if ((step+1) % 100) == 0 :
+                    print ("Step {} : Loss {}".format(step+1,self.model.loss))
 
     def train(self):
         raise NotImplementedError

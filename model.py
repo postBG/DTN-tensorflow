@@ -118,6 +118,8 @@ class DTN:
 
             # Calculating loss
             self.loss = tf.losses.softmax_cross_entropy(self.logits, self.s_labels)
+          #  self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
+          #  self.train_op = slim.learning.create_train_op(self.loss, self.optimizer)
             print (type(self.loss))
             print(self.loss)
         elif self.mode == 'train':
