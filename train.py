@@ -14,11 +14,32 @@ class Trainer:
         self.model = model
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
+        
+        # iteration
+        self.pretrain_iter = pretrain_iter
+        self.train_iter = train_iter
+        self.sample_iter = sample_iter
+
+        # directory
+        self.svhn_dir = svhn_dir
+        self.mnist_dir = mnist_dir
+        self.log_dir = log_dir
+        
+        # path
+        self.sample_save_path = sample_save_path
+        self.model_save_path = model_save_path
+
+        # model
+        self.pretrained_model = pretrained_model
+        self.test_model = test_model
+
     
     # all process use Adam
     def pretrain(self):
         images, labels = preutils.load_svhn()
         learning_rate = self.model.learning_rate
+        for step in range(self.
+        
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
             
