@@ -48,7 +48,7 @@ class Trainer:
 
     # all process use Adam
     def pretrain(self):
-        images, labels = preutils.load_svhn(use='test')
+        images, labels = preutils.load_svhn()
         self.model.build_pretrain_model()
 
         with tf.Session(config=self.config) as sess:
