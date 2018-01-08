@@ -20,11 +20,10 @@ class Trainer:
     https://wookayin.github.io/TensorFlowKR-2017-talk-bestpractice/ko/#37
     """
 
-    def __init__(self, model, learning_rate=0.0002, batch_size=128, pretrain_iter=20000, train_iter=2000,
+    def __init__(self, model, batch_size=128, pretrain_iter=20000, train_iter=2000,
                  sample_iter=100, svhn_dir='svhn', mnist_dir='mnist', log_dir='logs', sample_save_path='sample',
                  model_save_path='model', pretrained_model='model/svhn_model-20000', test_model='model/dtn-1800'):
         self.model = model
-        self.learning_rate = learning_rate
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
 
@@ -49,7 +48,7 @@ class Trainer:
 
     # all process use Adam
     def pretrain(self):
-        images, labels = preutils.load_svhn()
+        images, labels = preutils.load_svhn(use='test')
         self.model.build_pretrain_model()
 
         with tf.Session(config=self.config) as sess:
@@ -61,14 +60,11 @@ class Trainer:
                 batch_images = images[i * self.batch_size:(i + 1) * self.batch_size]
                 batch_labels = labels[i * self.batch_size:(i + 1) * self.batch_size]
 
-                sess.run(self.model.pretrain_op, {
-                    self.model.s_images: batch_images,
-                    self.model.s_labels: batch_labels,
-                    self.model.learning_rate: self.learning_rate
-                })
+                feed_dict = {self.model.s_images: batch_images, self.model.s_labels: batch_labels}
+                sess.run(self.model.pretrain_op, feed_dict)
 
-                if ((step + 1) % 100) == 0:
-                    print("Step {} : Loss {}".format(step + 1, self.model.loss))
+                if (step % 100) == 0:
+                    print("Step {} : Loss {}".format(step, sess.run(self.model.loss, feed_dict)))
 
     def train(self):
         raise NotImplementedError

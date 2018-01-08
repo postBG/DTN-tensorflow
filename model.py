@@ -93,20 +93,20 @@ def discriminator(t_shape_images, reuse=False, is_training=True):
                 return logits
 
 
-def dtn_model_factory(s_images, t_images, s_labels, learning_rate, configs):
+def dtn_model_factory(s_images, t_images, s_labels, configs):
     if configs.model == 'svhn2mnist':
-        return SVHN2MNIST_DTN(s_images, t_images, s_labels, learning_rate, configs)
+        return SVHN2MNIST_DTN(s_images, t_images, s_labels, configs)
     else:
         raise ValueError
 
 
 class AbstractDTN(TrainerClient):
-    def __init__(self, s_images, t_images, s_labels, learning_rate, configs):
+    def __init__(self, s_images, t_images, s_labels, configs):
         self.s_images = s_images
         self.t_images = t_images
         self.s_labels = s_labels
-        self.learning_rate = learning_rate
 
+        self.learning_rate = configs.learning_rate
         self.alpha = configs.alpha
         self.beta = configs.beta
         self.gamma = configs.gamma

@@ -32,10 +32,8 @@ def main(_):
     t_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 1], name='t_images')
     s_labels = tf.placeholder(tf.float32, shape=[None, 10], name='s_labels')
 
-    learning_rate = tf.placeholder(tf.float32, name='learning_rate')
-
-    model = dtn_model_factory(s_images, t_images, s_labels, learning_rate, FLAGS)
-    trainer = Trainer(model, learning_rate=FLAGS.learning_rate)
+    model = dtn_model_factory(s_images, t_images, s_labels, FLAGS)
+    trainer = Trainer(model)
 
     if FLAGS.mode == 'pretrain':
         trainer.pretrain()
