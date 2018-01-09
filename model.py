@@ -4,6 +4,25 @@ import tensorflow.contrib.slim as slim
 from train import TrainerClient
 
 
+def create_labels_like(tensor, label=0):
+    # TODO: Modify this code if you know the better way
+    label_for_stack = [0., 0., 0.]
+    label_for_stack[label] = 1.
+
+    batch_size = tensor.get_shape().as_list()[0]
+    return tf.stack([label_for_stack for _ in range(batch_size)])
+
+
+def loss_const(fx, fgfx, scope=None):
+    mse_of_features = tf.reduce_mean(tf.square(fx - fgfx), axis=1)
+    return tf.reduce_sum(mse_of_features, name=scope)
+
+
+def loss_tid(images, reconstructed_images, scope=None):
+    mse_of_images = tf.reduce_mean(tf.square(images - reconstructed_images), axis=1)
+    return tf.reduce_sum(mse_of_images, name=scope)
+
+
 def _is_mnist(images):
     return images.get_shape()[3] == 1
 
@@ -133,3 +152,32 @@ class SVHN2MNIST_DTN(AbstractDTN):
 
         print(type(self.loss))
         print(self.loss)
+
+    def loss_of_source(self):
+        fx = feature_extractor(self.s_images)
+        fake_t_images = generator(fx)
+        logits_fake = discriminator(fake_t_images)
+        fgfx = feature_extractor(fake_t_images, reuse=True)
+
+        partial_l_gand = slim.losses.softmax_cross_entropy(logits=logits_fake,
+                                                           onehot_labels=create_labels_like(logits_fake, label=0))
+        partial_l_gang = slim.losses.softmax_cross_entropy(logits=logits_fake,
+                                                           onehot_labels=create_labels_like(logits_fake, label=2))
+        l_const = loss_const(fx, fgfx, scope="loss_const")
+
+        return partial_l_gand, partial_l_gang, l_const
+
+    def loss_of_target(self):
+        fx = feature_extractor(self.t_images, reuse=True)
+        fake_t_images = generator(fx, reuse=True)
+        logits_fake = discriminator(fake_t_images, reuse=True)
+
+        partial_l_gand = slim.losses.softmax_cross_entropy(logits=logits_fake,
+                                                           onehot_labels=create_labels_like(logits_fake, label=1)) \
+                         + slim.losses.softmax_cross_entropy(logits=self.t_images,
+                                                             onehot_labels=create_labels_like(logits_fake, label=2))
+        partial_l_gang = slim.losses.softmax_cross_entropy(logits=logits_fake,
+                                                           onehot_labels=create_labels_like(logits_fake, label=2))
+        l_tid = loss_tid(self.t_images, logits_fake)
+
+        return partial_l_gand, partial_l_gang, l_tid
