@@ -14,13 +14,33 @@ def create_labels_like(tensor, label=0):
 
 
 def loss_const(fx, fgfx, scope=None):
-    mse_of_features = tf.reduce_mean(tf.square(fx - fgfx), axis=1)
+    """
+    Calculate L_CONST
+    
+    :param fx: shape [batch_size, 1, 1, 128] 
+    :param fgfx: shape [batch_size, 1, 1, 128] 
+    :param scope: string
+    :return: reduced scalar tensor
+    """
+    mse_of_features = tf.square(fx - fgfx)
+    for axis in range(3, 0, -1):
+        mse_of_features = tf.reduce_mean(mse_of_features, axis=axis)
     return tf.reduce_sum(mse_of_features, name=scope)
 
 
 def loss_tid(images, reconstructed_images, scope=None):
-    mse_of_images = tf.reduce_mean(tf.square(images - reconstructed_images), axis=1)
-    return tf.reduce_sum(mse_of_images, name=scope)
+    """
+    Calculate L_TID
+    
+    :param images: shape [batch_size, 32, 32, 3]
+    :param reconstructed_images: shape [batch_size, 32, 32, 3] 
+    :param scope: string 
+    :return: reduced scalar tensor
+    """
+    mse_of_features = tf.square(images - reconstructed_images)
+    for axis in range(3, 0, -1):
+        mse_of_features = tf.reduce_mean(mse_of_features, axis=axis)
+    return tf.reduce_sum(mse_of_features, name=scope)
 
 
 def _is_mnist(images):
@@ -133,7 +153,8 @@ class AbstractDTN(TrainerClient):
 
 class SVHN2MNIST_DTN(AbstractDTN):
     def build_train_model(self):
-        pass
+        partial_l_gand_of_s, partial_l_gang_of_s, l_const = self.loss_of_source()
+        partial_l_gand_of_t, partial_l_gang_of_t, l_tid = self.loss_of_target()
 
     def build_test_model(self):
         pass
@@ -174,7 +195,7 @@ class SVHN2MNIST_DTN(AbstractDTN):
 
         partial_l_gand = slim.losses.softmax_cross_entropy(logits=logits_fake,
                                                            onehot_labels=create_labels_like(logits_fake, label=1)) \
-                         + slim.losses.softmax_cross_entropy(logits=self.t_images,
+                         + slim.losses.softmax_cross_entropy(logits=discriminator(self.t_images, reuse=True),
                                                              onehot_labels=create_labels_like(logits_fake, label=2))
         partial_l_gang = slim.losses.softmax_cross_entropy(logits=logits_fake,
                                                            onehot_labels=create_labels_like(logits_fake, label=2))
