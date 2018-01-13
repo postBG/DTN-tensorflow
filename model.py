@@ -4,6 +4,7 @@ import tensorflow.contrib.slim as slim
 from train import TrainerClient
 from utils import one_hot_encoding
 
+
 def loss_const(fx, fgfx, scope=None):
     """
     Calculate L_CONST
@@ -125,7 +126,7 @@ def discriminator(t_shape_images, reuse=False, is_training=True):
 
 def dtn_model_factory(s_images, t_images, s_labels, configs):
     if configs.model == 'svhn2mnist':
-        return SVHN2MNIST_DTN(s_images, t_images, s_labels, configs)
+        return Svhn2MnistDTN(s_images, t_images, s_labels, configs)
     else:
         raise ValueError
 
@@ -142,7 +143,7 @@ class AbstractDTN(TrainerClient):
         self.gamma = configs.gamma
 
 
-class SVHN2MNIST_DTN(AbstractDTN):
+class Svhn2MnistDTN(AbstractDTN):
     def build_train_model(self):
         partial_l_gand_of_s, partial_l_gang_of_s, l_const = self.loss_of_source()
         partial_l_gand_of_t, partial_l_gang_of_t, l_tid = self.loss_of_target()
@@ -155,11 +156,11 @@ class SVHN2MNIST_DTN(AbstractDTN):
         self.logits = feature_extractor(self.s_images, False, True)
 
         self.preds = tf.argmax(self.logits, 1)
-        self.label_digit = tf.argmax(self.s_labels,1)
+        self.label_digit = tf.argmax(self.s_labels, 1)
         self.accuracy = tf.reduce_mean(tf.to_float(tf.equal(self.preds, self.label_digit)))
 
         # Calculating loss
-        self.loss = tf.losses.softmax_cross_entropy(onehot_labels=self.s_labels,logits=self.logits)
+        self.loss = tf.losses.softmax_cross_entropy(onehot_labels=self.s_labels, logits=self.logits)
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
 
@@ -171,12 +172,12 @@ class SVHN2MNIST_DTN(AbstractDTN):
         fake_t_images = generator(fx)
         logits_fake = discriminator(fake_t_images)
         fgfx = feature_extractor(fake_t_images, reuse=True)
-        
+
         # TODO check this is correct
         size = tf.shape(logits_fake)[0]
-        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,0), logits_fake)
-        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), logits_fake)
-        
+        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 0), logits_fake)
+        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2), logits_fake)
+
         l_const = loss_const(fx, fgfx, scope="loss_const")
 
         return partial_l_gan_d, partial_l_gan_g, l_const
@@ -185,12 +186,13 @@ class SVHN2MNIST_DTN(AbstractDTN):
         fx = feature_extractor(self.t_images, reuse=True)
         fake_t_images = generator(fx, reuse=True)
         logits_fake = discriminator(fake_t_images, reuse=True)
-        
+
         size = tf.shape(logits_fake)[0]
-        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,1), logits_fake) \
-                            + tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), discriminator(self.t_images,reuse=True))
-        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), logits_fake)
-        
+        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 1), logits_fake) \
+                          + tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2),
+                                                            discriminator(self.t_images, reuse=True))
+        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2), logits_fake)
+
         l_tid = loss_tid(self.t_images, logits_fake)
 
         return partial_l_gan_d, partial_l_gan_g, l_tid
