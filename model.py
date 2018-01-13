@@ -2,16 +2,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
 from train import TrainerClient
-
-
-def create_labels_like(tensor, label=0):
-    # TODO: Modify this code if you know the better way
-    label_for_stack = [0., 0., 0.]
-    label_for_stack[label] = 1.
-
-    batch_size = tensor.get_shape().as_list()[0]
-    return tf.stack([label_for_stack for _ in range(batch_size)])
-
+from utils import one_hot_encoding
 
 def loss_const(fx, fgfx, scope=None):
     """
@@ -180,26 +171,26 @@ class SVHN2MNIST_DTN(AbstractDTN):
         fake_t_images = generator(fx)
         logits_fake = discriminator(fake_t_images)
         fgfx = feature_extractor(fake_t_images, reuse=True)
-
-        partial_l_gand = slim.losses.softmax_cross_entropy(logits=logits_fake,
-                                                           onehot_labels=create_labels_like(logits_fake, label=0))
-        partial_l_gang = slim.losses.softmax_cross_entropy(logits=logits_fake,
-                                                           onehot_labels=create_labels_like(logits_fake, label=2))
+        
+        # TODO check this is correct
+        size = tf.shape(logits_fake)[0]
+        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,0), logits_fake)
+        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), logits_fake)
+        
         l_const = loss_const(fx, fgfx, scope="loss_const")
 
-        return partial_l_gand, partial_l_gang, l_const
+        return partial_l_gan_d, partial_l_gan_g, l_const
 
     def loss_of_target(self):
         fx = feature_extractor(self.t_images, reuse=True)
         fake_t_images = generator(fx, reuse=True)
         logits_fake = discriminator(fake_t_images, reuse=True)
-
-        partial_l_gand = slim.losses.softmax_cross_entropy(logits=logits_fake,
-                                                           onehot_labels=create_labels_like(logits_fake, label=1)) \
-                         + slim.losses.softmax_cross_entropy(logits=discriminator(self.t_images, reuse=True),
-                                                             onehot_labels=create_labels_like(logits_fake, label=2))
-        partial_l_gang = slim.losses.softmax_cross_entropy(logits=logits_fake,
-                                                           onehot_labels=create_labels_like(logits_fake, label=2))
+        
+        size = tf.shape(logits_fake)[0]
+        partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,1), logits_fake) \
+                            + tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), discriminator(self.t_images,reuse=True))
+        partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size,3,2), logits_fake)
+        
         l_tid = loss_tid(self.t_images, logits_fake)
 
-        return partial_l_gand, partial_l_gang, l_tid
+        return partial_l_gan_d, partial_l_gan_g, l_tid
