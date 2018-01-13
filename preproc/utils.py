@@ -65,9 +65,10 @@ def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
     data_size = data['X'].shape[3]
 
     labels = np.zeros((data_size, 10))
-    labels[np.arange(data_size), (data['y'] % 10)] = 1.0
+    labels[np.arange(data_size), np.transpose((data['y'] % 10))] = 1.0
     images = __store_data(data['X'].astype(np.float32), data_size, gray)
     images = images / 127.5 - 1
     print('finished loading svhn ' + use + ' dataset..!')
 
     return images, labels
+
