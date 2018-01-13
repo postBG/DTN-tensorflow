@@ -50,11 +50,9 @@ class Trainer:
     def pretrain(self):
         images, labels = preutils.load_svhn()
         self.model.build_pretrain_model()
-
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
             limit = images.shape[0] // self.batch_size
-
             for step in range(self.pretrain_iter):
                 i = step % limit
                 batch_images = images[i * self.batch_size:(i + 1) * self.batch_size]
@@ -64,7 +62,7 @@ class Trainer:
                 sess.run(self.model.pretrain_op, feed_dict)
 
                 if (step % 100) == 0:
-                    print("Step {} : Loss {}".format(step, sess.run(self.model.loss, feed_dict)))
+                    print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict), sess.run(self.model.accuracy,feed_dict)))
 
     def train(self):
         raise NotImplementedError

@@ -164,10 +164,11 @@ class SVHN2MNIST_DTN(AbstractDTN):
         self.logits = feature_extractor(self.s_images, False, True)
 
         self.preds = tf.argmax(self.logits, 1)
-        self.accuracy = tf.reduce_mean(tf.to_float(self.preds == self.s_labels))
+        self.label_digit = tf.argmax(self.s_labels,1)
+        self.accuracy = tf.reduce_mean(tf.to_float(tf.equal(self.preds, self.label_digit)))
 
         # Calculating loss
-        self.loss = tf.losses.softmax_cross_entropy(self.s_labels, self.logits)
+        self.loss = tf.losses.softmax_cross_entropy(onehot_labels=self.s_labels,logits=self.logits)
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
 
