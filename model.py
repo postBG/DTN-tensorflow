@@ -145,14 +145,33 @@ class AbstractDTN(TrainerClient):
 
 class Svhn2MnistDTN(AbstractDTN):
     def build_train_model(self):
-        partial_l_gand_of_s, partial_l_gang_of_s, l_const = self.loss_of_source()
-        partial_l_gand_of_t, partial_l_gang_of_t, l_tid = self.loss_of_target()
+        t_vars = tf.trainable_variables()
+        d_vars = [var for var in t_vars if 'discriminator' in var.name]
+        g_vars = [var for var in t_vars if 'generator' in var.name]
+        f_vars = [var for var in t_vars if 'feature_extractor' in var.name]
+
+        with tf.name_scope('source_train_op'):
+            self.partial_l_gand_of_s, self.partial_l_gang_of_s, self.l_const = self.loss_of_source()
+            self.d_train_op_src = slim.learning.create_train_op(self.partial_l_gand_of_s,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=d_vars)
+            self.g_train_op_src = slim.learning.create_train_op(self.partial_l_gang_of_s + self.l_const * self.alpha,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=g_vars + f_vars)
+
+        with tf.name_scope('target_train_op'):
+            self.partial_l_gand_of_t, self.partial_l_gang_of_t, self.l_tid = self.loss_of_target()
+            self.d_train_op_trg = slim.learning.create_train_op(self.partial_l_gand_of_t,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=d_vars)
+            self.g_train_op_trg = slim.learning.create_train_op(self.partial_l_gang_of_t + self.l_tid * self.beta,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=g_vars + f_vars)
 
     def build_test_model(self):
         pass
 
     def build_pretrain_model(self):
-        print("build_pretrain_model is called")
         self.logits = feature_extractor(self.s_images, False, True)
 
         self.preds = tf.argmax(self.logits, 1)
@@ -164,16 +183,12 @@ class Svhn2MnistDTN(AbstractDTN):
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
 
-        print(type(self.loss))
-        print(self.loss)
-
     def loss_of_source(self):
         fx = feature_extractor(self.s_images)
         fake_t_images = generator(fx)
         logits_fake = discriminator(fake_t_images)
         fgfx = feature_extractor(fake_t_images, reuse=True)
 
-        # TODO check this is correct
         size = tf.shape(logits_fake)[0]
         partial_l_gan_d = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 0), logits_fake)
         partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2), logits_fake)
