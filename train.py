@@ -3,18 +3,6 @@ import tensorflow as tf
 import preproc.utils as preutils
 
 
-class TrainerClient:
-    def build_pretrain_model(self):
-        """Make pretrain_op as instance member"""
-        raise NotImplementedError
-
-    def build_train_model(self):
-        raise NotImplementedError
-
-    def build_test_model(self):
-        raise NotImplementedError
-
-
 class Trainer:
     """
     https://wookayin.github.io/TensorFlowKR-2017-talk-bestpractice/ko/#37
@@ -62,7 +50,8 @@ class Trainer:
                 sess.run(self.model.pretrain_op, feed_dict)
 
                 if (step % 100) == 0:
-                    print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict), sess.run(self.model.accuracy,feed_dict)))
+                    print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
+                                                                            sess.run(self.model.accuracy, feed_dict)))
 
     def train(self):
         raise NotImplementedError

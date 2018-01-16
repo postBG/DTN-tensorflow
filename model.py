@@ -1,7 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
-from train import TrainerClient
 from utils import one_hot_encoding
 
 
@@ -131,7 +130,7 @@ def dtn_model_factory(s_images, t_images, s_labels, configs):
         raise ValueError
 
 
-class AbstractDTN(TrainerClient):
+class AbstractDTN:
     def __init__(self, s_images, t_images, s_labels, configs):
         self.s_images = s_images
         self.t_images = t_images
@@ -142,8 +141,32 @@ class AbstractDTN(TrainerClient):
         self.beta = configs.beta
         self.gamma = configs.gamma
 
+    def build_pretrain_model(self):
+        """Make pretrain_op as instance member"""
+        raise NotImplementedError
+
+    def build_train_model(self):
+        """Make d_train_op_src, g_train_op_src, d_train_op_trg, g_train_op_trg as instance members"""
+        raise NotImplementedError
+
+    def build_test_model(self):
+        """Make generated_images as instance member"""
+        raise NotImplementedError
+
 
 class Svhn2MnistDTN(AbstractDTN):
+    def build_pretrain_model(self):
+        self.logits = feature_extractor(self.s_images, False, True)
+
+        self.preds = tf.argmax(self.logits, 1)
+        self.label_digit = tf.argmax(self.s_labels, 1)
+        self.accuracy = tf.reduce_mean(tf.to_float(tf.equal(self.preds, self.label_digit)))
+
+        # Calculating loss
+        self.loss = tf.losses.softmax_cross_entropy(onehot_labels=self.s_labels, logits=self.logits)
+        self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
+
     def build_train_model(self):
         t_vars = tf.trainable_variables()
         d_vars = [var for var in t_vars if 'discriminator' in var.name]
@@ -169,19 +192,8 @@ class Svhn2MnistDTN(AbstractDTN):
                                                                 variables_to_train=g_vars + f_vars)
 
     def build_test_model(self):
-        pass
-
-    def build_pretrain_model(self):
-        self.logits = feature_extractor(self.s_images, False, True)
-
-        self.preds = tf.argmax(self.logits, 1)
-        self.label_digit = tf.argmax(self.s_labels, 1)
-        self.accuracy = tf.reduce_mean(tf.to_float(tf.equal(self.preds, self.label_digit)))
-
-        # Calculating loss
-        self.loss = tf.losses.softmax_cross_entropy(onehot_labels=self.s_labels, logits=self.logits)
-        self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
-        self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
+        self.fx = feature_extractor(self.s_images)
+        self.generated_images = generator(self.fx, is_training=False)
 
     def loss_of_source(self):
         fx = feature_extractor(self.s_images)

@@ -1,9 +1,7 @@
 import unittest
 import tensorflow as tf
-import numpy as np
-from numpy.testing import assert_almost_equal
 
-from model import generator, discriminator, feature_extractor, create_labels_like, loss_const, loss_tid
+from model import generator, discriminator, feature_extractor, loss_const, loss_tid
 
 
 class TestDTNUtils(unittest.TestCase):
@@ -37,17 +35,6 @@ class TestDTNUtils(unittest.TestCase):
 
         self.assertListEqual([None, 3], discriminated.get_shape().as_list(),
                              'Incorrect Image Shape.  Found {} shape'.format(discriminated.get_shape().as_list()))
-
-    def test_create_labels_like(self):
-        batch_size = 10
-        tensor = tf.zeros(shape=[batch_size, 3], dtype=tf.float32)
-        created_labels_tensor = create_labels_like(tensor, label=1)
-
-        expected_labels = np.asarray([[0., 1., 0.] for _ in range(batch_size)])
-
-        with tf.Session() as sess:
-            created_label = sess.run(created_labels_tensor)
-            assert_almost_equal(expected_labels, created_label)
 
     def test_loss_const(self):
         batch_size = 10
