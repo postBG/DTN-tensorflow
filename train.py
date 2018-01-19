@@ -48,8 +48,8 @@ class Trainer:
                 batch_labels = labels[i * self.batch_size:(i + 1) * self.batch_size]
 
                 feed_dict = {self.model.s_images: batch_images, self.model.s_labels: batch_labels}
-                sess.run(self.model.pretrain_op, feed_dict)
-                writer.add_summary(sess.run(self.model.merged, feed_dict),step)
+                _, merged = sess.run([self.model.pretrain_op,self.model.merged], feed_dict)
+                writer.add_summary(merged,step)
 
                 if (step % 100) == 0:
                     print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
