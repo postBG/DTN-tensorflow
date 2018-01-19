@@ -167,6 +167,12 @@ class Svhn2MnistDTN(AbstractDTN):
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate)
         self.pretrain_op = slim.learning.create_train_op(self.loss, self.optimizer)
 
+        # Summary
+        self.l_summary = tf.summary.scalar('pretrain_loss',self.loss)
+        self.accuracy_summary = tf.summary.scalar('pretrain_accuracy',self.accuracy)
+        self.merged = tf.summary.merge_all()
+
+
     def build_train_model(self):
         t_vars = tf.trainable_variables()
         d_vars = [var for var in t_vars if 'discriminator' in var.name]
