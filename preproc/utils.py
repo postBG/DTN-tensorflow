@@ -32,7 +32,7 @@ def load_mnist(data_dir=MNIST_PATH, use='train'):
 
 def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
     """
-    Load preprocessed SVHN and normalize it to [0, 1]
+    Load preprocessed SVHN and normalize it to [-1, 1]
     
     parameter
     - data_dir : directory path where mnist pickles exist. default SVHN_PATH 
@@ -65,18 +65,10 @@ def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
     data_size = data['X'].shape[3]
 
     labels = np.zeros((data_size, 10))
-    labels[np.arange(data_size), (data['y'] % 10)] = 1.0
-    images = __store_data(data['X'].astype("float32"), data_size, gray)
-    images = images / 255
+    labels[np.arange(data_size), np.transpose((data['y'] % 10))] = 1.0
+    images = __store_data(data['X'].astype(np.float32), data_size, gray)
+    images = images / 127.5 - 1
     print('finished loading svhn ' + use + ' dataset..!')
+
     return images, labels
 
-
-    # load dataset
-
-#    if use=='train' :
-#        train = sio.loadmat(data_dir + "/train_32x32.mat")
-#        train_size = train['X'].shape[3]
-#        train_labels = one_hot_encoding(train_size,11,train['y']) # train['y'] has 10
-#        train_data = __store_data(train['X'].astype("float32"),train_size,gray)
-#        return train_data/255. , train_labels
