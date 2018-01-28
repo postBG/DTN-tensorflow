@@ -71,4 +71,3 @@ def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
     print('finished loading svhn ' + use + ' dataset..!')
 
     return images, labels
-

@@ -40,7 +40,7 @@ class Trainer:
         images, labels = preutils.load_svhn()
         self.model.build_pretrain_model()
         with tf.Session(config=self.config) as sess:
-            writer = tf.summary.FileWriter('./logs/pretrain',sess.graph)
+            writer = tf.summary.FileWriter('./logs/pretrain', sess.graph)
             saver = tf.train.Saver()
             tf.global_variables_initializer().run()
             limit = images.shape[0] // self.batch_size
@@ -50,21 +50,20 @@ class Trainer:
                 batch_labels = labels[i * self.batch_size:(i + 1) * self.batch_size]
 
                 feed_dict = {self.model.s_images: batch_images, self.model.s_labels: batch_labels}
-                _, merged = sess.run([self.model.pretrain_op,self.model.merged], feed_dict)
-                writer.add_summary(merged,step)
-                
+                _, merged = sess.run([self.model.pretrain_op, self.model.merged], feed_dict)
+                writer.add_summary(merged, step)
+
                 if (step % 100) == 0:
                     print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
                                                                             sess.run(self.model.accuracy, feed_dict)))
             # Save pretrained model
-            saver.save(sess,os.path.join(self.model_save_path,self.pretrained_model))
+            saver.save(sess, os.path.join(self.model_save_path, self.pretrained_model))
 
     def train(self):
         with tf.Session(config=self.config) as sess:
-            saver = tf.train.import_meta_graph(os.path.join(self.model_save_path,self.pretrained_model+'.meta'))
+            saver = tf.train.import_meta_graph(os.path.join(self.model_save_path, self.pretrained_model + '.meta'))
             tf.global_variables_initializer().run()
-            saver.restore(sess,tf.train.latest_checkpoint(self.model_save_path))
-            
+            saver.restore(sess, tf.train.latest_checkpoint(self.model_save_path))
 
     def save(self):
         raise NotImplementedError
