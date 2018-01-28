@@ -2,6 +2,7 @@ import tensorflow as tf
 
 import os
 import preproc.utils as preutils
+from preproc.preprocess import SVHN_PATH, MNIST_PATH
 
 
 class Trainer:
@@ -10,7 +11,7 @@ class Trainer:
     """
 
     def __init__(self, model, batch_size=128, pretrain_iter=500, train_iter=2000,
-                 sample_iter=100, svhn_dir='svhn', mnist_dir='mnist', log_dir='logs', sample_save_path='sample',
+                 sample_iter=100, svhn_dir=SVHN_PATH, mnist_dir=MNIST_PATH, log_dir='./logs', sample_save_path='sample',
                  model_save_path='model', pretrained_model='svhn_model-20000', test_model='dtn-1800'):
         self.model = model
         self.config = tf.ConfigProto()
@@ -37,10 +38,10 @@ class Trainer:
 
     # all process use Adam
     def pretrain(self):
-        images, labels = preutils.load_svhn()
+        images, labels = preutils.load_svhn(self.svhn_dir)
         self.model.build_pretrain_model()
         with tf.Session(config=self.config) as sess:
-            writer = tf.summary.FileWriter('./logs/pretrain', sess.graph)
+            writer = tf.summary.FileWriter(self.log_dir + '/pretrain', sess.graph)
             saver = tf.train.Saver()
             tf.global_variables_initializer().run()
             limit = images.shape[0] // self.batch_size
