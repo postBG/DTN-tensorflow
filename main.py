@@ -38,13 +38,15 @@ def main(_):
         os.makedirs(FLAGS.sample_dir)
     if not os.path.exists(FLAGS.model_save_path):
         os.makedirs(FLAGS.model_save_path)
+    if not os.path.exists(FLAGS.log_dir):
+        os.makedirs(FLAGS.log_dir)
 
     s_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='s_images')
     t_images = tf.placeholder(tf.float32, shape=[None, 32, 32, 1], name='t_images')
     s_labels = tf.placeholder(tf.float32, shape=[None, 10], name='s_labels')
 
     model = dtn_model_factory(s_images, t_images, s_labels, FLAGS)
-    trainer = Trainer(model, batch_size=FLAGS.batch_size, pretrain_iter=FLAGS.pretrain_iter,
+    trainer = Trainer(model, batch_size=FLAGS.batch_size, pretrain_iter=FLAGS.pretrain_iter, log_dir=FLAGS.log_dir,
                       svhn_dir=FLAGS.svhn_dir, mnist_dir=FLAGS.mnist_dir, model_save_path=FLAGS.model_save_path)
 
     if FLAGS.mode == 'pretrain':

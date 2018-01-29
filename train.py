@@ -38,7 +38,7 @@ class Trainer:
 
     # all process use Adam
     def pretrain(self):
-        images, labels = preutils.load_svhn(self.svhn_dir)
+        images, labels = preutils.load_svhn(self.svhn_dir, use='extra')
         self.model.build_pretrain_model()
         with tf.Session(config=self.config) as sess:
             writer = tf.summary.FileWriter(self.log_dir + '/pretrain', sess.graph)
