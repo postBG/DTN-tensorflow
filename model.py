@@ -173,13 +173,15 @@ class Svhn2MnistDTN(AbstractDTN):
         self.merged = tf.summary.merge_all()
 
     def build_train_model(self):
+        self.partial_l_gand_of_s, self.partial_l_gang_of_s, self.l_const = self.loss_of_source()
+        self.partial_l_gand_of_t, self.partial_l_gang_of_t, self.l_tid = self.loss_of_target()
+
         t_vars = tf.trainable_variables()
         d_vars = [var for var in t_vars if 'discriminator' in var.name]
         g_vars = [var for var in t_vars if 'generator' in var.name]
         f_vars = [var for var in t_vars if 'feature_extractor' in var.name]
 
         with tf.name_scope('source_train_op'):
-            self.partial_l_gand_of_s, self.partial_l_gang_of_s, self.l_const = self.loss_of_source()
             self.d_train_op_src = slim.learning.create_train_op(self.partial_l_gand_of_s,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
                                                                 variables_to_train=d_vars)
@@ -188,7 +190,6 @@ class Svhn2MnistDTN(AbstractDTN):
                                                                 variables_to_train=g_vars + f_vars)
 
         with tf.name_scope('target_train_op'):
-            self.partial_l_gand_of_t, self.partial_l_gang_of_t, self.l_tid = self.loss_of_target()
             self.d_train_op_trg = slim.learning.create_train_op(self.partial_l_gand_of_t,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
                                                                 variables_to_train=d_vars)

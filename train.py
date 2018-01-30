@@ -61,6 +61,7 @@ class Trainer:
             saver.save(sess, os.path.join(self.model_save_path, self.pretrained_model))
 
     def train(self):
+        self.model.build_train_model()
         with tf.Session(config=self.config) as sess:
             saver = tf.train.import_meta_graph(os.path.join(self.model_save_path, self.pretrained_model + '.meta'))
             tf.global_variables_initializer().run()

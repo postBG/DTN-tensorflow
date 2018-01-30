@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 
 
@@ -6,6 +7,5 @@ def rgb2gray(rgb):
 
 
 def one_hot_encoding(size, dim, y):
-    one_hot = np.zeros((size, dim))
-    one_hot[np.arange(size), y] = 1.0
-    return one_hot
+    labels = tf.fill([size, 1], y)
+    return tf.reshape(tf.one_hot(labels, dim), [-1, dim])
