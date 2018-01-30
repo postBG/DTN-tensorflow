@@ -73,3 +73,4 @@ Test2.ipynb
 .floydexpt
 .floydignore
 floyd_requirements.txt
+output/

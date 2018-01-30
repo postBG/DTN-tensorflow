@@ -196,6 +196,17 @@ class Svhn2MnistDTN(AbstractDTN):
             self.g_train_op_trg = slim.learning.create_train_op(self.partial_l_gang_of_t + self.l_tid * self.beta,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
                                                                 variables_to_train=g_vars + f_vars)
+        # Summary
+        self.summary_partial_l_gand_of_s = tf.summary.scalar('partial_l_gand_of_s', self.partial_l_gand_of_s)
+        self.summary_partial_l_gang_of_s = tf.summary.scalar('partial_l_gang_of_s', self.partial_l_gang_of_s)
+        self.summary_l_const = tf.summary.scalar('l_const', self.l_const)
+        self.summary_partial_l_gand_of_t = tf.summary.scalar('partial_l_gand_of_t', self.partial_l_gand_of_t)
+        self.summary_partial_l_gang_of_t = tf.summary.scalar('partial_l_gang_of_t', self.partial_l_gang_of_t)
+        self.summary_l_tid = tf.summary.scalar('l_tid', self.l_tid)
+        self.summary_l_gan_d = tf.summary.scalar('l_gand', self.partial_l_gand_of_s + self.partial_l_gand_of_t)
+        self.summary_l_gan_g = tf.summary.scalar('l_gang', self.partial_l_gang_of_s + self.partial_l_gang_of_t)
+        self.merged = tf.summary.merge_all()
+
 
     def build_test_model(self):
         self.fx = feature_extractor(self.s_images)

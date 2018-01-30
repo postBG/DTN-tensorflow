@@ -42,7 +42,7 @@ class Trainer:
         images, labels = preutils.load_svhn(self.svhn_dir, use='extra')
         self.model.build_pretrain_model()
         with tf.Session(config=self.config) as sess:
-            writer = tf.summary.FileWriter(self.log_dir + '/pretrain', sess.graph)
+            writer = tf.summary.FileWriter(os.path.join(self.log_dir, 'pretrain'), sess.graph)
             saver = tf.train.Saver()
             tf.global_variables_initializer().run()
             limit = images.shape[0] // self.batch_size
@@ -62,6 +62,9 @@ class Trainer:
             saver.save(sess, self.pretrained_model)
 
     def train(self):
+        src_images, _ = preutils.load_svhn(self.svhn_dir, use='train')
+        trg_images, _ = preutils.load_mnist(self.mnist_dir, use='train')
+
         self.model.build_train_model()
 
         variables_to_restore = slim.get_model_variables(scope='feature_extractor')
@@ -70,3 +73,30 @@ class Trainer:
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
             restorer.restore(sess, self.pretrained_model)
+
+            summary_writer = tf.summary.FileWriter(os.path.join(self.log_dir, 'train'), sess.graph)
+            saver = tf.train.Saver()
+
+            num_of_src_batches = src_images.shape[0] // self.batch_size
+            num_of_trg_batches = trg_images.shape[0] // self.batch_size
+            for step in range(self.train_iter):
+                i = step % num_of_src_batches
+                j = step % num_of_trg_batches
+
+                src_batch = src_images[i * self.batch_size:(i + 1) * self.batch_size]
+                trg_batch = trg_images[j * self.batch_size:(j + 1) * self.batch_size]
+                feed_dict = {
+                    self.model.s_images: src_batch,
+                    self.model.t_images: trg_batch
+                }
+
+                _, _, _, _, merged = sess.run([self.model.d_train_op_src,
+                                               self.model.g_train_op_src,
+                                               self.model.d_train_op_trg,
+                                               self.model.g_train_op_trg,
+                                               self.model.merged], feed_dict=feed_dict)
+                summary_writer.add_summary(merged, step)
+
+                if (step + 1) % 1000 == 0:
+                    saver.save(sess, os.path.join(self.model_save_path, 'dtn'), global_step=step + 1)
+                    print('model dtn-%d has saved' % step + 1)
