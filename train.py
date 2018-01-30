@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
 
 import os
 import preproc.utils as preutils
@@ -33,7 +34,7 @@ class Trainer:
         self.model_save_path = model_save_path
 
         # model
-        self.pretrained_model = pretrained_model
+        self.pretrained_model = os.path.join(self.model_save_path, pretrained_model)
         self.test_model = test_model
 
     # all process use Adam
@@ -58,17 +59,14 @@ class Trainer:
                     print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
                                                                             sess.run(self.model.accuracy, feed_dict)))
             # Save pretrained model
-            saver.save(sess, os.path.join(self.model_save_path, self.pretrained_model))
+            saver.save(sess, self.pretrained_model)
 
     def train(self):
         self.model.build_train_model()
+
+        variables_to_restore = slim.get_model_variables(scope='feature_extractor')
+        restorer = tf.train.Saver(variables_to_restore)
+
         with tf.Session(config=self.config) as sess:
-            saver = tf.train.import_meta_graph(os.path.join(self.model_save_path, self.pretrained_model + '.meta'))
             tf.global_variables_initializer().run()
-            saver.restore(sess, tf.train.latest_checkpoint(self.model_save_path))
-
-    def save(self):
-        raise NotImplementedError
-
-    def load(self):
-        raise NotImplementedError
+            restorer.restore(sess, self.pretrained_model)
