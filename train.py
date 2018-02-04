@@ -1,9 +1,12 @@
+import os
+
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from scipy.misc import imsave
 
-import os
 import preproc.utils as preutils
 from preproc.preprocess import SVHN_PATH, MNIST_PATH
+from utils import merge_images
 
 
 class Trainer:
@@ -14,7 +17,7 @@ class Trainer:
     def __init__(self, model, batch_size=128, pretrain_iter=500, train_iter=2000,
                  sample_iter=100, svhn_dir=SVHN_PATH, mnist_dir=MNIST_PATH, log_dir='./logs', sample_save_path='sample',
                  model_save_path='model', model_read_path='model', pretrained_model='svhn_model-20000',
-                 test_model='dtn-1800'):
+                 test_model='dtn-2000'):
         self.model = model
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
@@ -102,3 +105,26 @@ class Trainer:
                 if (step + 1) % 1000 == 0:
                     saver.save(sess, os.path.join(self.model_save_path, 'dtn'), global_step=step + 1)
                     print('model dtn-%d has saved' % (step + 1))
+
+    def sample(self):
+        src_images, _ = preutils.load_svhn(self.svhn_dir, use='test')
+
+        self.model.build_test_model()
+
+        with tf.Session(config=self.config) as sess:
+            tf.global_variables_initializer().run()
+            restorer = tf.train.Saver()
+            restorer.restore(sess, os.path.join(self.model_read_path, self.test_model))
+
+            num_of_src_batches = src_images.shape[0] // self.batch_size
+            for step in range(self.sample_iter):
+                i = step % num_of_src_batches
+                batch_images = src_images[i * self.batch_size:(i + 1) * self.batch_size]
+                feed_dict = {self.model.s_images: batch_images}
+
+                generated_images = sess.run(self.model.generated_images, feed_dict=feed_dict)
+                merged = merge_images(batch_images, generated_images)
+                path = os.path.join(self.sample_save_path,
+                                    'sample-%d-to-%d.png' % (i * self.batch_size, (i + 1) * self.batch_size))
+                imsave(path, merged)
+                print('saved %s' % path)

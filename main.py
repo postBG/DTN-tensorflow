@@ -18,6 +18,7 @@ flags.DEFINE_float("gamma", 0., "The value of gamma [0]")
 flags.DEFINE_integer("epoch", 100, "Epoch to train [100]")
 flags.DEFINE_integer("batch_size", 128, "The size of batch images [128]")
 flags.DEFINE_integer("pretrain_iter", 500, "The number of iteration of pretrain")
+flags.DEFINE_integer("sample_iter", 100, "The number of iteration of sampling")
 flags.DEFINE_string("svhn_dir", SVHN_PATH, "data path of svhn dataset")
 flags.DEFINE_string("mnist_dir", MNIST_PATH, "data path of mnist dataset")
 flags.DEFINE_string("log_dir", 'logs', "path for logs")
@@ -50,13 +51,16 @@ def main(_):
 
     model = dtn_model_factory(s_images, t_images, s_labels, FLAGS)
     trainer = Trainer(model, batch_size=FLAGS.batch_size, pretrain_iter=FLAGS.pretrain_iter, log_dir=FLAGS.log_dir,
-                      svhn_dir=FLAGS.svhn_dir, mnist_dir=FLAGS.mnist_dir, model_save_path=FLAGS.model_save_path,
+                      sample_iter=FLAGS.sample_iter, svhn_dir=FLAGS.svhn_dir, mnist_dir=FLAGS.mnist_dir,
+                      sample_save_path=FLAGS.sample_dir, model_save_path=FLAGS.model_save_path,
                       model_read_path=FLAGS.model_read_path)
 
     if FLAGS.mode == 'pretrain':
         trainer.pretrain()
     if FLAGS.mode == 'train':
         trainer.train()
+    if FLAGS.mode == 'sample':
+        trainer.sample()
 
 
 if __name__ == '__main__':
