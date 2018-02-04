@@ -13,7 +13,8 @@ class Trainer:
 
     def __init__(self, model, batch_size=128, pretrain_iter=500, train_iter=2000,
                  sample_iter=100, svhn_dir=SVHN_PATH, mnist_dir=MNIST_PATH, log_dir='./logs', sample_save_path='sample',
-                 model_save_path='model', pretrained_model='svhn_model-20000', test_model='dtn-1800'):
+                 model_save_path='model', model_read_path='model', pretrained_model='svhn_model-20000',
+                 test_model='dtn-1800'):
         self.model = model
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
@@ -32,9 +33,10 @@ class Trainer:
         # path
         self.sample_save_path = sample_save_path
         self.model_save_path = model_save_path
+        self.model_read_path = model_read_path
 
         # model
-        self.pretrained_model = os.path.join(self.model_save_path, pretrained_model)
+        self.pretrained_model = pretrained_model
         self.test_model = test_model
 
     # all process use Adam
@@ -59,7 +61,7 @@ class Trainer:
                     print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
                                                                             sess.run(self.model.accuracy, feed_dict)))
             # Save pretrained model
-            saver.save(sess, self.pretrained_model)
+            saver.save(sess, os.path.join(self.model_save_path, self.pretrained_model))
 
     def train(self):
         src_images, _ = preutils.load_svhn(self.svhn_dir, use='train')
@@ -72,7 +74,7 @@ class Trainer:
 
         with tf.Session(config=self.config) as sess:
             tf.global_variables_initializer().run()
-            restorer.restore(sess, self.pretrained_model)
+            restorer.restore(sess, os.path.join(self.model_read_path, self.pretrained_model))
 
             summary_writer = tf.summary.FileWriter(os.path.join(self.log_dir, 'train'), sess.graph)
             saver = tf.train.Saver()
@@ -99,4 +101,4 @@ class Trainer:
 
                 if (step + 1) % 1000 == 0:
                     saver.save(sess, os.path.join(self.model_save_path, 'dtn'), global_step=step + 1)
-                    print('model dtn-%d has saved' % step + 1)
+                    print('model dtn-%d has saved' % (step + 1))

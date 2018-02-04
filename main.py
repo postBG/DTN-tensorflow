@@ -22,6 +22,7 @@ flags.DEFINE_string("svhn_dir", SVHN_PATH, "data path of svhn dataset")
 flags.DEFINE_string("mnist_dir", MNIST_PATH, "data path of mnist dataset")
 flags.DEFINE_string("log_dir", 'logs', "path for logs")
 flags.DEFINE_string("model_save_path", 'model', "path for saving models")
+flags.DEFINE_string("model_read_path", 'model', "path for reading models")
 flags.DEFINE_string("sample_dir", "samples", "Directory name to save the image samples [samples]")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
 
@@ -38,6 +39,8 @@ def main(_):
         os.makedirs(FLAGS.sample_dir)
     if not os.path.exists(FLAGS.model_save_path):
         os.makedirs(FLAGS.model_save_path)
+    if not os.path.exists(FLAGS.model_read_path):
+        os.makedirs(FLAGS.model_read_path)
     if not os.path.exists(FLAGS.log_dir):
         os.makedirs(FLAGS.log_dir)
 
@@ -47,7 +50,8 @@ def main(_):
 
     model = dtn_model_factory(s_images, t_images, s_labels, FLAGS)
     trainer = Trainer(model, batch_size=FLAGS.batch_size, pretrain_iter=FLAGS.pretrain_iter, log_dir=FLAGS.log_dir,
-                      svhn_dir=FLAGS.svhn_dir, mnist_dir=FLAGS.mnist_dir, model_save_path=FLAGS.model_save_path)
+                      svhn_dir=FLAGS.svhn_dir, mnist_dir=FLAGS.mnist_dir, model_save_path=FLAGS.model_save_path,
+                      model_read_path=FLAGS.model_read_path)
 
     if FLAGS.mode == 'pretrain':
         trainer.pretrain()
