@@ -237,6 +237,6 @@ class Svhn2MnistDTN(AbstractDTN):
                                                             discriminator(self.t_images, reuse=True))
         partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2), logits_fake)
 
-        l_tid = loss_tid(self.t_images, logits_fake)
+        l_tid = loss_tid(self.t_images, fake_t_images)
 
         return partial_l_gan_d, partial_l_gan_g, l_tid
