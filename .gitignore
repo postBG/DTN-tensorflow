@@ -63,6 +63,7 @@ secrets.json
 ## data
 dataset/fashionmnist/*
 samples
+persistence
 
 ## python notebook
 Test.ipynb

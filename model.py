@@ -187,7 +187,10 @@ class Svhn2MnistDTN(AbstractDTN):
                                                                 variables_to_train=d_vars)
             self.g_train_op_src = slim.learning.create_train_op(self.partial_l_gang_of_s + self.l_const * self.alpha,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
-                                                                variables_to_train=g_vars + f_vars)
+                                                                variables_to_train=g_vars)
+            self.f_train_op_src = slim.learning.create_train_op(self.l_const * self.alpha,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=f_vars)
 
         with tf.name_scope('target_train_op'):
             self.d_train_op_trg = slim.learning.create_train_op(self.partial_l_gand_of_t,
@@ -195,7 +198,10 @@ class Svhn2MnistDTN(AbstractDTN):
                                                                 variables_to_train=d_vars)
             self.g_train_op_trg = slim.learning.create_train_op(self.partial_l_gang_of_t + self.l_tid * self.beta,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
-                                                                variables_to_train=g_vars + f_vars)
+                                                                variables_to_train=g_vars)
+            self.f_train_op_trg = slim.learning.create_train_op(self.l_tid * self.beta,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=f_vars)
         # Summary
         self.summary_partial_l_gand_of_s = tf.summary.scalar('partial_l_gand_of_s', self.partial_l_gand_of_s)
         self.summary_partial_l_gang_of_s = tf.summary.scalar('partial_l_gang_of_s', self.partial_l_gang_of_s)

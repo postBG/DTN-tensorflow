@@ -17,7 +17,7 @@ class Trainer:
     def __init__(self, model, batch_size=128, pretrain_iter=500, train_iter=2000,
                  sample_iter=100, svhn_dir=SVHN_PATH, mnist_dir=MNIST_PATH, log_dir='./logs', sample_save_path='sample',
                  model_save_path='model', model_read_path='model', pretrained_model='svhn_model-20000',
-                 test_model='dtn-2000'):
+                 test_model='dtn-2000', train_g_weights=5):
         self.model = model
         self.config = tf.ConfigProto()
         self.config.gpu_options.allow_growth = True
@@ -41,6 +41,9 @@ class Trainer:
         # model
         self.pretrained_model = pretrained_model
         self.test_model = test_model
+
+        # tuning
+        self.train_g_weights = train_g_weights
 
     # all process use Adam
     def pretrain(self):
@@ -95,11 +98,15 @@ class Trainer:
                     self.model.t_images: trg_batch
                 }
 
-                _, _, _, _, merged = sess.run([self.model.d_train_op_src,
-                                               self.model.g_train_op_src,
-                                               self.model.d_train_op_trg,
-                                               self.model.g_train_op_trg,
-                                               self.model.merged], feed_dict=feed_dict)
+                sess.run(self.model.d_train_op_src, feed_dict=feed_dict)
+                for _ in range(self.train_g_weights):
+                    sess.run([self.model.g_train_op_src, self.model.f_train_op_src], feed_dict=feed_dict)
+
+                sess.run(self.model.d_train_op_trg, feed_dict=feed_dict)
+                for _ in range(self.train_g_weights):
+                    sess.run([self.model.g_train_op_trg, self.model.f_train_op_trg], feed_dict=feed_dict)
+
+                merged = sess.run(self.model.merged, feed_dict=feed_dict)
                 summary_writer.add_summary(merged, step)
 
                 if (step + 1) % 1000 == 0:
