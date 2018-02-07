@@ -53,3 +53,22 @@ class TestDTNUtils(unittest.TestCase):
         with tf.Session() as sess:
             l_tid = sess.run(loss_tid(images, images2))
             self.assertAlmostEqual(4. * batch_size, l_tid)
+
+    def test_discriminator_logits_shape(self):
+        t_images = tf.ones(shape=[128, 32, 32, 1])
+
+        fx = feature_extractor(t_images)
+        fake_t_images = generator(fx)
+        logits_fake = discriminator(fake_t_images)
+
+        self.assertListEqual([128, 3], logits_fake.get_shape().as_list(),
+                             'Incorrect Logits shape.  Found {} shape'.format(logits_fake.get_shape().as_list()))
+
+    def test_generator_logits_shape(self):
+        t_images = tf.ones(shape=[128, 32, 32, 1])
+
+        fx = feature_extractor(t_images)
+        fake_t_images = generator(fx)
+
+        self.assertListEqual([128, 32, 32, 1], fake_t_images.get_shape().as_list(),
+                             'Incorrect Logits shape.  Found {} shape'.format(fake_t_images.get_shape().as_list()))

@@ -62,9 +62,16 @@ secrets.json
 
 ## data
 dataset/fashionmnist/*
-
+samples
+persistence
 
 ## python notebook
 Test.ipynb
 Test2.ipynb
 .ipynb_checkpoints
+
+# floydhub
+.floydexpt
+.floydignore
+floyd_requirements.txt
+output/

@@ -4,10 +4,9 @@ import scipy.io as sio
 import numpy as np
 
 from utils import rgb2gray
-from .preprocess import MNIST_PATH, SVHN_PATH
 
 
-def load_mnist(data_dir=MNIST_PATH, use='train'):
+def load_mnist(data_dir, use='train'):
     """
     Load preprocessed mnist and normalize it to [-1, 1]
     
@@ -30,7 +29,7 @@ def load_mnist(data_dir=MNIST_PATH, use='train'):
     return images, labels
 
 
-def load_svhn(data_dir=SVHN_PATH, use='train', gray=False):
+def load_svhn(data_dir, use='train', gray=False):
     """
     Load preprocessed SVHN and normalize it to [-1, 1]
     

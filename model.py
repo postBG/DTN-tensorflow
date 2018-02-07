@@ -173,28 +173,46 @@ class Svhn2MnistDTN(AbstractDTN):
         self.merged = tf.summary.merge_all()
 
     def build_train_model(self):
+        self.partial_l_gand_of_s, self.partial_l_gang_of_s, self.l_const = self.loss_of_source()
+        self.partial_l_gand_of_t, self.partial_l_gang_of_t, self.l_tid = self.loss_of_target()
+
         t_vars = tf.trainable_variables()
         d_vars = [var for var in t_vars if 'discriminator' in var.name]
         g_vars = [var for var in t_vars if 'generator' in var.name]
         f_vars = [var for var in t_vars if 'feature_extractor' in var.name]
 
         with tf.name_scope('source_train_op'):
-            self.partial_l_gand_of_s, self.partial_l_gang_of_s, self.l_const = self.loss_of_source()
             self.d_train_op_src = slim.learning.create_train_op(self.partial_l_gand_of_s,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
                                                                 variables_to_train=d_vars)
             self.g_train_op_src = slim.learning.create_train_op(self.partial_l_gang_of_s + self.l_const * self.alpha,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
-                                                                variables_to_train=g_vars + f_vars)
+                                                                variables_to_train=g_vars)
+            self.f_train_op_src = slim.learning.create_train_op(self.l_const * self.alpha,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=f_vars)
 
         with tf.name_scope('target_train_op'):
-            self.partial_l_gand_of_t, self.partial_l_gang_of_t, self.l_tid = self.loss_of_target()
             self.d_train_op_trg = slim.learning.create_train_op(self.partial_l_gand_of_t,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
                                                                 variables_to_train=d_vars)
             self.g_train_op_trg = slim.learning.create_train_op(self.partial_l_gang_of_t + self.l_tid * self.beta,
                                                                 tf.train.AdamOptimizer(self.learning_rate),
-                                                                variables_to_train=g_vars + f_vars)
+                                                                variables_to_train=g_vars)
+            self.f_train_op_trg = slim.learning.create_train_op(self.l_tid * self.beta,
+                                                                tf.train.AdamOptimizer(self.learning_rate),
+                                                                variables_to_train=f_vars)
+        # Summary
+        self.summary_partial_l_gand_of_s = tf.summary.scalar('partial_l_gand_of_s', self.partial_l_gand_of_s)
+        self.summary_partial_l_gang_of_s = tf.summary.scalar('partial_l_gang_of_s', self.partial_l_gang_of_s)
+        self.summary_l_const = tf.summary.scalar('l_const', self.l_const)
+        self.summary_partial_l_gand_of_t = tf.summary.scalar('partial_l_gand_of_t', self.partial_l_gand_of_t)
+        self.summary_partial_l_gang_of_t = tf.summary.scalar('partial_l_gang_of_t', self.partial_l_gang_of_t)
+        self.summary_l_tid = tf.summary.scalar('l_tid', self.l_tid)
+        self.summary_l_gan_d = tf.summary.scalar('l_gand', self.partial_l_gand_of_s + self.partial_l_gand_of_t)
+        self.summary_l_gan_g = tf.summary.scalar('l_gang', self.partial_l_gang_of_s + self.partial_l_gang_of_t)
+        self.merged = tf.summary.merge_all()
+
 
     def build_test_model(self):
         self.fx = feature_extractor(self.s_images)
@@ -225,6 +243,6 @@ class Svhn2MnistDTN(AbstractDTN):
                                                             discriminator(self.t_images, reuse=True))
         partial_l_gan_g = tf.losses.softmax_cross_entropy(one_hot_encoding(size, 3, 2), logits_fake)
 
-        l_tid = loss_tid(self.t_images, logits_fake)
+        l_tid = loss_tid(self.t_images, fake_t_images)
 
         return partial_l_gan_d, partial_l_gan_g, l_tid
