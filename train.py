@@ -48,6 +48,9 @@ class Trainer:
     # all process use Adam
     def pretrain(self):
         images, labels = preutils.load_svhn(self.svhn_dir, use='extra')
+        test_images, test_labels = preutils.load_svhn(self.svhn_dir, use='test')
+        test_images, test_labels = test_images[:1024], test_labels[:1024]
+
         self.model.build_pretrain_model()
         with tf.Session(config=self.config) as sess:
             writer = tf.summary.FileWriter(os.path.join(self.log_dir, 'pretrain'), sess.graph)
@@ -60,14 +63,21 @@ class Trainer:
                 batch_labels = labels[i * self.batch_size:(i + 1) * self.batch_size]
 
                 feed_dict = {self.model.s_images: batch_images, self.model.s_labels: batch_labels}
-                _, merged = sess.run([self.model.pretrain_op, self.model.merged], feed_dict)
-                writer.add_summary(merged, step)
+                sess.run(self.model.pretrain_op, feed_dict)
 
-                if (step % 100) == 0:
-                    print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}".format(step, sess.run(self.model.loss, feed_dict),
-                                                                            sess.run(self.model.accuracy, feed_dict)))
-            # Save pretrained model
-            saver.save(sess, os.path.join(self.model_save_path, self.pretrained_model))
+                if (step + 1) % 100 == 0:
+                    merged = sess.run(self.model.merged, feed_dict=feed_dict)
+                    writer.add_summary(merged, step)
+
+                    test_feed_dict = {self.model.s_images: test_images, self.model.s_labels: test_labels}
+                    print("Step {:6} : Loss {:.8}\tAccuracy : {:.5}"
+                          .format(step + 1,
+                                  sess.run(self.model.loss, test_feed_dict),
+                                  sess.run(self.model.accuracy, test_feed_dict)))
+
+                if (step + 1) % 10000 == 0:
+                    saver.save(sess, os.path.join(self.model_save_path, 'svhn_model'), global_step=step + 1)
+                    print('svhn_model-%d saved..!' % (step + 1))
 
     def train(self):
         src_images, _ = preutils.load_svhn(self.svhn_dir, use='train')
