@@ -116,8 +116,9 @@ class Trainer:
                 for _ in range(self.train_g_weights):
                     sess.run([self.model.g_train_op_trg, self.model.f_train_op_trg], feed_dict=feed_dict)
 
-                merged = sess.run(self.model.merged, feed_dict=feed_dict)
-                summary_writer.add_summary(merged, step)
+                if (step + 1) % 10 == 0:
+                    merged = sess.run(self.model.merged, feed_dict=feed_dict)
+                    summary_writer.add_summary(merged, step)
 
                 if (step + 1) % 1000 == 0:
                     saver.save(sess, os.path.join(self.model_save_path, 'dtn'), global_step=step + 1)
